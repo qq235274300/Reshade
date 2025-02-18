@@ -1482,8 +1482,8 @@ void reshade::runtime::draw_gui()
 		}
 
 		ImGui::SetNextWindowPos(viewport->Pos + viewport_offset);
-		//ImGui::SetNextWindowSize(viewport->Size - viewport_offset);
-		ImGui::SetNextWindowSize(ImVec2(1024, 75));
+		//ImGui::SetNextWindowSize(viewport->Size - viewport_offset); //longjie
+		ImGui::SetNextWindowSize(ImVec2(1024, 88));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::Begin("Viewport", nullptr,
 			ImGuiWindowFlags_NoDecoration |
@@ -4700,7 +4700,10 @@ bool reshade::runtime::init_imgui_resources()
 {
 	// Adjust default font size based on the vertical resolution
 	if (_font_size == 0)
-		_editor_font_size = _font_size = _height >= 2160 ? 26 : _height >= 1440 ? 20 : 13;
+	{
+		_editor_font_size = _font_size = _height >= 2160 ? 26 : _height >= 1440 ? 20 : 20;
+	}
+		
 
 	const bool has_combined_sampler_and_view = _device->check_capability(api::device_caps::sampler_with_resource_view);
 
