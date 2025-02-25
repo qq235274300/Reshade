@@ -15,6 +15,7 @@ static std::unordered_set<std::string> s_runtime_config_names;
 
 void reshade::create_effect_runtime(api::swapchain *swapchain, api::command_queue *graphics_queue, bool is_vr)
 {
+	//私有数据存在表示创建过 直接返回
 	if (graphics_queue == nullptr || &swapchain->get_private_data<reshade::runtime>() != nullptr)
 		return;
 

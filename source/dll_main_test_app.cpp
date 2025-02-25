@@ -65,6 +65,7 @@ static LONG APIENTRY HookD3DKMTQueryAdapterInfo(const void *pData)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
+	//应用程序实例句柄
 	g_module_handle = hInstance;
 	g_reshade_dll_path = get_module_path(hInstance);
 	g_target_executable_path = g_reshade_dll_path;
@@ -75,6 +76,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 
 	reshade::hooks::register_module(L"user32.dll");
 
+	//hook  这里面有个reshade.ini的配置 可以将D3D9 D3D11强行用D3D12来渲染  需要测试
 	reshade::hooks::install("D3DKMTQueryAdapterInfo", GetProcAddress(GetModuleHandleW(L"gdi32.dll"), "D3DKMTQueryAdapterInfo"), HookD3DKMTQueryAdapterInfo);
 
 	static UINT s_resize_w = 0, s_resize_h = 0;
@@ -261,7 +263,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		com_ptr<ID3D11DeviceContext> immediate_context;
 		com_ptr<IDXGISwapChain> swapchain;
 
-		{   DXGI_SWAP_CHAIN_DESC desc = {};
+		{
+			DXGI_SWAP_CHAIN_DESC desc = {};
 			desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			desc.SampleDesc = { multisample ? 4u : 1u, 0u };
 			desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -277,7 +280,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 #endif
 			HR_CHECK(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, nullptr, 0, D3D11_SDK_VERSION, &desc, &swapchain, &device, nullptr, &immediate_context));
 		}
-
 		com_ptr<ID3D11Texture2D> backbuffer;
 		HR_CHECK(swapchain->GetBuffer(0, IID_PPV_ARGS(&backbuffer)));
 		com_ptr<ID3D11RenderTargetView> target;
@@ -303,7 +305,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 				s_resize_w = s_resize_h = 0;
 			}
 
-			const float color[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+			const float color[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 			immediate_context->ClearRenderTargetView(target.get(), color);
 
 			HR_CHECK(swapchain->Present(1, 0));

@@ -113,7 +113,7 @@ void reshade::runtime::init_gui()
 
 	ImGuiStyle &imgui_style = _imgui_context->Style;
 	// Disable rounding by default
-	imgui_style.GrabRounding = 0.0f;
+	imgui_style.GrabRounding = 0.0f; 
 	imgui_style.FrameRounding = 0.0f;
 	imgui_style.ChildRounding = 0.0f;
 	imgui_style.ScrollbarRounding = 0.0f;
@@ -844,14 +844,14 @@ void reshade::runtime::draw_gui()
 		//longjie 直接检测ctrl+Z 切换3D
 		if (_input->is_key_pressed(0x5A, true, false, false, true))
 		{
-			reshade::log::message(reshade::log::level::info, "an le z ");
+			reshade::log::message(reshade::log::level::info, "keyboard pressed Z button ");
 			WriteTo3DGlass();
 		}
 		//直接检测ctrl+C 切换2D  暂时不用
 		if (_input->is_key_pressed(0x43, true, false, false, true))
 		{
-			reshade::log::message(reshade::log::level::info, "an le c ");
-			//WriteTo2DGlass();
+			reshade::log::message(reshade::log::level::info, "keyboard pressed C button  ");
+			WriteTo2DGlass();
 		}
 
 		if (_show_overlay && !_ignore_shortcuts && !_imgui_context->IO.NavVisible && _input->is_key_pressed(0x1B /* VK_ESCAPE */) &&
@@ -1512,6 +1512,8 @@ void reshade::runtime::draw_gui()
 			if (ImGui::Begin(widget.first.c_str(), nullptr, ImGuiWindowFlags_NoFocusOnAppearing)) // No focus so that window state is preserved between opening/closing the GUI
 				(this->*widget.second)();
 			ImGui::End();
+
+			 
 		}
 
 #if RESHADE_FX
@@ -4698,7 +4700,7 @@ void reshade::runtime::draw_code_editor(editor_instance &instance)
 
 bool reshade::runtime::init_imgui_resources()
 {
-	// Adjust default font size based on the vertical resolution
+	// Adjust default font size based on the vertical resolution 
 	if (_font_size == 0)
 	{
 		_editor_font_size = _font_size = _height >= 2160 ? 26 : _height >= 1440 ? 20 : 20;

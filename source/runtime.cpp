@@ -298,7 +298,7 @@ reshade::runtime::runtime(api::swapchain *swapchain, api::command_queue *graphic
 	init_gui();
 #endif
 
-	// Ensure config path is absolute, in case an add-on created an effect runtime with a relative path
+	// Ensure config path is absolute, in case an add-on created an effect runtime with a relative path 绝对化路径
 	std::error_code ec;
 	resolve_path(_config_path, ec);
 
@@ -550,6 +550,7 @@ bool reshade::runtime::on_init()
 		}
 	}
 
+	//创建了一个适用于当前图形API的状态块
 	create_state_block(_device, &_app_state);
 
 #if RESHADE_GUI
@@ -778,12 +779,13 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 		runtime::render_effects(cmd_list, _back_buffer_targets[0], _back_buffer_targets[1]);
 	}
 	else
-	{
+	{ 
+		//对当前帧进行效果渲染  longjie
 		cmd_list->barrier(back_buffer_resource, api::resource_usage::present, api::resource_usage::render_target);
 		runtime::render_effects(cmd_list, _back_buffer_targets[back_buffer_index], _back_buffer_targets[back_buffer_index + 1]);
 		cmd_list->barrier(back_buffer_resource, api::resource_usage::render_target, api::resource_usage::present);
 	}
-#endif
+#endif 
 
 	if (_should_save_screenshot)
 		save_screenshot(_screenshot_save_before ? "After" : std::string_view());
@@ -791,6 +793,7 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 	_frame_count++;
 	const auto current_time = std::chrono::high_resolution_clock::now();
 	_last_frame_duration = current_time - _last_present_time; _last_present_time = current_time;
+
 
 #if RESHADE_GUI
 	// Draw overlay
