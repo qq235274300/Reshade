@@ -798,6 +798,7 @@ void DXGISwapChain::on_present(UINT flags, [[maybe_unused]] const DXGI_PRESENT_P
 			params != nullptr ? params->DirtyRectsCount : 0,
 			params != nullptr ? reinterpret_cast<const reshade::api::rect *>(params->pDirtyRects) : nullptr);
 #endif
+		//longjie 2.26
 		reshade::present_effect_runtime(_impl, static_cast<D3D11Device *>(static_cast<ID3D11Device *>(_direct3d_device))->_immediate_context);
 		break;
 	case 12:

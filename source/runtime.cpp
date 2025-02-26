@@ -743,7 +743,15 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 
 	capture_state(cmd_list, _app_state);
 
-	uint32_t back_buffer_index = (_back_buffer_resolved != 0 ? 2 : 0) + get_current_back_buffer_index() * 2;
+	uint32_t currenrBufferIndex = get_current_back_buffer_index();
+
+	uint32_t back_buffer_index = (_back_buffer_resolved != 0 ? 2 : 0) + currenrBufferIndex * 2;
+
+	reshade::log::message(reshade::log::level::info, "Current Back Buffer Index: %u", currenrBufferIndex);
+	reshade::log::message(reshade::log::level::info, "Back Buffer Index: %u", back_buffer_index);
+	reshade::log::message(reshade::log::level::info, "_back_buffer_resolved: %u", _back_buffer_resolved);
+
+	//需要多创建一份 原始资源
 	const api::resource back_buffer_resource = _device->get_resource_from_view(_back_buffer_targets[back_buffer_index]);
 
 	// Resolve MSAA back buffer if MSAA is active or copy when format conversion is required
@@ -888,10 +896,11 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 				{
 					if (_input->is_key_pressed(tech.toggle_key_data, _force_shortcut_modifiers))
 					{
-						if (!tech.enabled)
+						//longjie 2.26
+						/*if (!tech.enabled)
 							enable_technique(tech);
 						else
-							disable_technique(tech);
+							disable_technique(tech);*/
 
 #if RESHADE_GUI
 						if (_auto_save_preset)
@@ -3515,10 +3524,15 @@ void reshade::runtime::enable_technique(technique &tech)
 	if (!tech.permutations[0].created &&
 		// Avoid adding the same effect multiple times to the queue if it contains multiple techniques that were enabled simultaneously
 		std::find(_reload_create_queue.cbegin(), _reload_create_queue.cend(), std::make_pair(tech.effect_index, 0u)) == _reload_create_queue.cend())
+	{
 		_reload_create_queue.emplace_back(tech.effect_index, 0u);
-
+	}
+		
 	if (status_changed) // Increase rendering reference count
+	{
 		_effects[tech.effect_index].rendering++;
+	}
+		
 }
 void reshade::runtime::disable_technique(technique &tech)
 {
@@ -4258,7 +4272,7 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 				_reload_required_effects.emplace_back(tech.effect_index, permutation_index);
 			continue;
 		}
-
+		//longjie
 		render_technique(tech, cmd_list, back_buffer_resource, rtv, rtv_srgb, permutation_index);
 
 		if (tech.time_left > 0)
@@ -4276,6 +4290,27 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 #if RESHADE_ADDON
 	invoke_addon_event<addon_event::reshade_finish_effects>(this, cmd_list, rtv, rtv_srgb);
 
+
+	//disable_technique(tech);
+	for (size_t technique_index : _technique_sorting)
+	{
+		technique &tech = _techniques[technique_index];
+
+		if (tech.name == "SuperDepth3D")
+		{
+			if (tech.enabled)
+			{
+				//disable_technique(tech);
+				tech.enabled = false;
+// 				tech.time_left = 0;
+// 				tech.average_cpu_duration.clear();
+// 				tech.average_gpu_duration.clear();
+				
+			}
+			break;
+		}
+	}
+	
 	if (!_is_in_present_call)
 		apply_state(cmd_list, _app_state);
 #endif
@@ -4371,6 +4406,8 @@ void reshade::runtime::render_technique(technique &tech, api::command_list *cmd_
 		}
 		else
 		{
+			//longjie 2.26
+			
 			cmd_list->bind_pipeline(api::pipeline_stage::all_graphics, pass.pipeline);
 
 			// Transition resource state for render targets
