@@ -1443,16 +1443,16 @@ void reshade::runtime::draw_gui()
 		const std::pair<std::string, void(runtime::*)()> overlay_callbacks[] = {
 //longjie
 #if RESHADE_FX
-			//{ _("Home###home"), &runtime::draw_gui_home },
-			{ _("Home###home"), &runtime::draw_technique_editor },
+			{ _("Home###home"), &runtime::draw_gui_home },
+			//{ _("Home###home"), &runtime::draw_technique_editor },
 #endif
-//#if RESHADE_ADDON
-//			{ _("Add-ons###addons"), &runtime::draw_gui_addons },
-//#endif
-//			{ _("Settings###settings"), &runtime::draw_gui_settings },
-//			{ _("Statistics###statistics"), &runtime::draw_gui_statistics },
-//			{ _("Log###log"), &runtime::draw_gui_log },
-//			{ _("About###about"), &runtime::draw_gui_about }
+#if RESHADE_ADDON
+			{ _("Add-ons###addons"), &runtime::draw_gui_addons },
+#endif
+			{ _("Settings###settings"), &runtime::draw_gui_settings },
+			{ _("Statistics###statistics"), &runtime::draw_gui_statistics },
+			{ _("Log###log"), &runtime::draw_gui_log },
+			{ _("About###about"), &runtime::draw_gui_about }
 		};
 
 		const ImGuiID root_space_id = ImGui::GetID("ViewportDockspace");
@@ -1482,8 +1482,8 @@ void reshade::runtime::draw_gui()
 		}
 
 		ImGui::SetNextWindowPos(viewport->Pos + viewport_offset);
-		//ImGui::SetNextWindowSize(viewport->Size - viewport_offset); //longjie
-		ImGui::SetNextWindowSize(ImVec2(1024, 88));
+		ImGui::SetNextWindowSize(viewport->Size - viewport_offset); //longjie
+		//ImGui::SetNextWindowSize(ImVec2(1024, 88));
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::Begin("Viewport", nullptr,
 			ImGuiWindowFlags_NoDecoration |

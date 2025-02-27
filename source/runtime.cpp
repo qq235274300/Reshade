@@ -777,7 +777,7 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 		input_lock = _input->lock();
 
 #if RESHADE_FX
-	update_effects();
+	update_effects(); 
 
 	if (_should_save_screenshot && _screenshot_save_before && _effects_enabled && !_effects_rendered_this_frame)
 		save_screenshot("Before");
@@ -820,134 +820,134 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 
 	// All screenshots were created at this point, so reset request
 	_should_save_screenshot = false;
-
+	//longjie 
 	// Handle keyboard shortcuts
-	if (!_ignore_shortcuts && _input != nullptr)
-	{
-#if RESHADE_FX
-		if (_input->is_key_pressed(_effects_key_data, _force_shortcut_modifiers))
-		{
-#if RESHADE_ADDON
-			if (!invoke_addon_event<addon_event::reshade_set_effects_state>(this, !_effects_enabled))
-#endif
-				_effects_enabled = !_effects_enabled;
-		}
-#endif
-
-		if (_input->is_key_pressed(_screenshot_key_data, _force_shortcut_modifiers))
-		{
-			_screenshot_count++;
-			_should_save_screenshot = true; // Remember that we want to save a screenshot next frame
-		}
-
-#if RESHADE_FX
-		// Do not allow the following shortcuts while effects are being loaded or initialized (since they affect that state)
-		if (!is_loading())
-		{
-			if (_effects_enabled)
-			{
-				for (effect &effect : _effects)
-				{
-					if (!effect.rendering)
-						continue;
-
-					for (uniform &variable : effect.uniforms)
-					{
-						if (_input->is_key_pressed(variable.toggle_key_data, _force_shortcut_modifiers))
-						{
-							assert(variable.supports_toggle_key());
-
-							// Change to next value if the associated shortcut key was pressed
-							switch (variable.type.base)
-							{
-								case reshadefx::type::t_bool:
-								{
-									bool data = false;
-									get_uniform_value(variable, &data);
-									set_uniform_value(variable, !data);
-									break;
-								}
-								case reshadefx::type::t_int:
-								case reshadefx::type::t_uint:
-								{
-									int data[4] = {};
-									get_uniform_value(variable, data, 4);
-									const std::string_view ui_items = variable.annotation_as_string("ui_items");
-									int num_items = 0;
-									for (size_t offset = 0, next; (next = ui_items.find('\0', offset)) != std::string_view::npos; offset = next + 1)
-										num_items++;
-									data[0] = (data[0] + 1 >= num_items) ? 0 : data[0] + 1;
-									set_uniform_value(variable, data, 4);
-									break;
-								}
-							}
-
-#if RESHADE_GUI
-							if (_auto_save_preset)
-								save_current_preset();
-							else
-								_preset_is_modified = true;
-#endif
-						}
-					}
-				}
-
-				for (technique &tech : _techniques)
-				{
-					if (_input->is_key_pressed(tech.toggle_key_data, _force_shortcut_modifiers))
-					{
-						//longjie 2.26
-						/*if (!tech.enabled)
-							enable_technique(tech);
-						else
-							disable_technique(tech);*/
-
-#if RESHADE_GUI
-						if (_auto_save_preset)
-							save_current_preset();
-						else
-							_preset_is_modified = true;
-#endif
-					}
-				}
-			}
-
-			if (_input->is_key_pressed(_reload_key_data, _force_shortcut_modifiers))
-				reload_effects();
-
-			if (_input->is_key_pressed(_performance_mode_key_data, _force_shortcut_modifiers))
-			{
-				_performance_mode = !_performance_mode;
-				save_config();
-				reload_effects();
-			}
-
-			if (const bool reversed = _input->is_key_pressed(_prev_preset_key_data, _force_shortcut_modifiers);
-				reversed || _input->is_key_pressed(_next_preset_key_data, _force_shortcut_modifiers))
-			{
-				// The preset shortcut key was pressed down, so start the transition
-				if (switch_to_next_preset(_current_preset_path.parent_path(), reversed))
-					save_config();
-			}
-			else
-			{
-				for (const preset_shortcut &shortcut : _preset_shortcuts)
-				{
-					if (_input->is_key_pressed(shortcut.key_data, _force_shortcut_modifiers))
-					{
-						if (switch_to_next_preset(shortcut.preset_path))
-							save_config();
-						break;
-					}
-				}
-			}
-
-			// Continuously update preset values while a transition is in progress
-			if (_is_in_preset_transition)
-				load_current_preset();
-		}
-#endif
-	}
+//	if (!_ignore_shortcuts && _input != nullptr)
+//	{
+//#if RESHADE_FX
+//		if (_input->is_key_pressed(_effects_key_data, _force_shortcut_modifiers))
+//		{
+//#if RESHADE_ADDON
+//			if (!invoke_addon_event<addon_event::reshade_set_effects_state>(this, !_effects_enabled))
+//#endif
+//				_effects_enabled = !_effects_enabled;
+//		}
+//#endif
+//
+//		if (_input->is_key_pressed(_screenshot_key_data, _force_shortcut_modifiers))
+//		{
+//			_screenshot_count++;
+//			_should_save_screenshot = true; // Remember that we want to save a screenshot next frame
+//		}
+//
+//#if RESHADE_FX
+//		// Do not allow the following shortcuts while effects are being loaded or initialized (since they affect that state)
+//		if (!is_loading())
+//		{
+//			if (_effects_enabled)
+//			{
+//				for (effect &effect : _effects)
+//				{
+//					if (!effect.rendering)
+//						continue;
+//
+//					for (uniform &variable : effect.uniforms)
+//					{
+//						if (_input->is_key_pressed(variable.toggle_key_data, _force_shortcut_modifiers))
+//						{
+//							assert(variable.supports_toggle_key());
+//
+//							// Change to next value if the associated shortcut key was pressed
+//							switch (variable.type.base)
+//							{
+//								case reshadefx::type::t_bool:
+//								{
+//									bool data = false;
+//									get_uniform_value(variable, &data);
+//									set_uniform_value(variable, !data);
+//									break;
+//								}
+//								case reshadefx::type::t_int:
+//								case reshadefx::type::t_uint:
+//								{
+//									int data[4] = {};
+//									get_uniform_value(variable, data, 4);
+//									const std::string_view ui_items = variable.annotation_as_string("ui_items");
+//									int num_items = 0;
+//									for (size_t offset = 0, next; (next = ui_items.find('\0', offset)) != std::string_view::npos; offset = next + 1)
+//										num_items++;
+//									data[0] = (data[0] + 1 >= num_items) ? 0 : data[0] + 1;
+//									set_uniform_value(variable, data, 4);
+//									break;
+//								}
+//							}
+//
+//#if RESHADE_GUI
+//							if (_auto_save_preset)
+//								save_current_preset();
+//							else
+//								_preset_is_modified = true;
+//#endif
+//						}
+//					}
+//				}
+//
+//				for (technique &tech : _techniques)
+//				{
+//					if (_input->is_key_pressed(tech.toggle_key_data, _force_shortcut_modifiers))
+//					{
+//						//longjie 2.26
+//						/*if (!tech.enabled)
+//							enable_technique(tech);
+//						else
+//							disable_technique(tech);*/
+//
+//#if RESHADE_GUI
+//						if (_auto_save_preset)
+//							save_current_preset();
+//						else
+//							_preset_is_modified = true;
+//#endif
+//					}
+//				}
+//			}
+//
+//			if (_input->is_key_pressed(_reload_key_data, _force_shortcut_modifiers))
+//				reload_effects();
+//
+//			if (_input->is_key_pressed(_performance_mode_key_data, _force_shortcut_modifiers))
+//			{
+//				_performance_mode = !_performance_mode;
+//				save_config();
+//				reload_effects();
+//			}
+//
+//			if (const bool reversed = _input->is_key_pressed(_prev_preset_key_data, _force_shortcut_modifiers);
+//				reversed || _input->is_key_pressed(_next_preset_key_data, _force_shortcut_modifiers))
+//			{
+//				// The preset shortcut key was pressed down, so start the transition
+//				if (switch_to_next_preset(_current_preset_path.parent_path(), reversed))
+//					save_config();
+//			}
+//			else
+//			{
+//				for (const preset_shortcut &shortcut : _preset_shortcuts)
+//				{
+//					if (_input->is_key_pressed(shortcut.key_data, _force_shortcut_modifiers))
+//					{
+//						if (switch_to_next_preset(shortcut.preset_path))
+//							save_config();
+//						break;
+//					}
+//				}
+//			}
+//
+//			// Continuously update preset values while a transition is in progress
+//			if (_is_in_preset_transition)
+//				load_current_preset();
+//		}
+//#endif
+//	}
 
 	// Stretch main render target back into MSAA back buffer if MSAA is active or copy when format conversion is required
 	if (_back_buffer_resolved != 0)
@@ -3985,7 +3985,7 @@ void reshade::runtime::update_effects()
 		// Disable all techniques belonging to this effect
 		for (technique &tech : _techniques)
 			if (tech.effect_index == effect_index)
-				disable_technique(tech);
+				 (tech);
 
 		effect.compiled = false;
 		_last_reload_successful = false;
@@ -4263,8 +4263,9 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 		technique &tech = _techniques[technique_index];
 		const effect &effect = _effects[tech.effect_index];
 
-		if (!tech.enabled || (_should_save_screenshot && !tech.enabled_in_screenshot) || (!_effects_enabled && !effect.addon))
-			continue;
+		//longjie
+		/*if (!tech.enabled || (_should_save_screenshot && !tech.enabled_in_screenshot) || (!_effects_enabled && !effect.addon))
+			continue;*/
 
 		if (permutation_index >= tech.permutations.size() || (!tech.permutations[permutation_index].created && effect.permutations[permutation_index].assembly.empty()))
 		{
@@ -4273,7 +4274,9 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 			continue;
 		}
 		//longjie
+		tech.enabled = false;
 		render_technique(tech, cmd_list, back_buffer_resource, rtv, rtv_srgb, permutation_index);
+		//tech.enabled = true;
 
 		if (tech.time_left > 0)
 		{
@@ -4290,29 +4293,24 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 #if RESHADE_ADDON
 	invoke_addon_event<addon_event::reshade_finish_effects>(this, cmd_list, rtv, rtv_srgb);
 
-
+	//Sleep(1000);
 	//disable_technique(tech);
+	
+	
+	if (!_is_in_present_call)
+		apply_state(cmd_list, _app_state);
+
+
 	for (size_t technique_index : _technique_sorting)
 	{
 		technique &tech = _techniques[technique_index];
 
 		if (tech.name == "SuperDepth3D")
 		{
-			if (tech.enabled)
-			{
-				//disable_technique(tech);
-				tech.enabled = false;
-// 				tech.time_left = 0;
-// 				tech.average_cpu_duration.clear();
-// 				tech.average_gpu_duration.clear();
-				
-			}
+			disable_technique(tech);
 			break;
 		}
 	}
-	
-	if (!_is_in_present_call)
-		apply_state(cmd_list, _app_state);
 #endif
 }
 void reshade::runtime::render_technique(technique &tech, api::command_list *cmd_list, api::resource back_buffer_resource, api::resource_view back_buffer_rtv, api::resource_view back_buffer_rtv_srgb, size_t permutation_index)
