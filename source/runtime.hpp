@@ -355,6 +355,9 @@ namespace reshade
 		api::sampler  _copy_sampler_state = {};
 
 		api::resource _back_buffer_resolved = {};
+
+		api::resource original_game_texture = {};
+
 		api::resource_view _back_buffer_resolved_srv = {};
 		std::vector<api::resource_view> _back_buffer_targets;
 

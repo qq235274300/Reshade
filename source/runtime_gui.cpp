@@ -101,7 +101,7 @@ void reshade::runtime::init_gui()
 	_overlay_key_data[0] = 0x58; //VK_X  'X'
 	_overlay_key_data[1] = true;
 	_overlay_key_data[2] = false;
-	_overlay_key_data[3] = true;
+	_overlay_key_data[3] = false;
 
 	ImGuiContext *const backup_context = ImGui::GetCurrentContext();
 	_imgui_context = ImGui::CreateContext();
