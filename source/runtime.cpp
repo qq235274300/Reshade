@@ -4301,19 +4301,20 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 		{
 			if (std::find(_reload_required_effects.begin(), _reload_required_effects.end(), std::make_pair(tech.effect_index, permutation_index)) == _reload_required_effects.end())
 				_reload_required_effects.emplace_back(tech.effect_index, permutation_index);
-			continue;
+			continue; 
 		}
 		//longjie
 		//tech.enabled = false;
 		render_technique(tech, cmd_list, back_buffer_resource, rtv, rtv_srgb, permutation_index);
-		//tech.enabled = true;
-
+		
 		if (tech.time_left > 0)
 		{
 			tech.time_left -= std::chrono::duration_cast<std::chrono::milliseconds>(_last_frame_duration).count();
 			if (tech.time_left <= 0)
 				disable_technique(tech);
 		}
+
+		//enable_technique(tech);
 	}
 
 #ifndef NDEBUG

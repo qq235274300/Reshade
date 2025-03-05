@@ -1447,12 +1447,12 @@ void reshade::runtime::draw_gui()
 			//{ _("Home###home"), &runtime::draw_technique_editor },
 #endif
 #if RESHADE_ADDON
-			{ _("Add-ons###addons"), &runtime::draw_gui_addons },
+			//{ _("Add-ons###addons"), &runtime::draw_gui_addons },
 #endif
-			{ _("Settings###settings"), &runtime::draw_gui_settings },
+			/*{ _("Settings###settings"), &runtime::draw_gui_settings },
 			{ _("Statistics###statistics"), &runtime::draw_gui_statistics },
 			{ _("Log###log"), &runtime::draw_gui_log },
-			{ _("About###about"), &runtime::draw_gui_about }
+			{ _("About###about"), &runtime::draw_gui_about }*/
 		};
 
 		const ImGuiID root_space_id = ImGui::GetID("ViewportDockspace");
