@@ -385,10 +385,14 @@ bool reshade::runtime::on_init()
 	_back_buffer_samples = back_buffer_desc.texture.samples;
 	_back_buffer_color_space = _swapchain->get_color_space();
 
-	api::resource_usage usage = api::resource_usage::render_target | api::resource_usage::copy_dest | api::resource_usage::resolve_dest;
-	!_device->create_resource(
+	api::resource_usage usage = api::resource_usage::render_target | api::resource_usage::copy_dest | api::resource_usage::copy_source;
+	if (!_device->create_resource(
 		api::resource_desc(_width, _height, 1, 1, api::format_to_typeless(_back_buffer_format), 1, api::memory_heap::gpu_only, usage),
-		nullptr, back_buffer_desc.texture.samples == 1 ? api::resource_usage::copy_dest : api::resource_usage::copy_dest, &original_game_texture);
+		nullptr, back_buffer_desc.texture.samples == 1 ? api::resource_usage::copy_dest : api::resource_usage::copy_dest, &original_game_texture))
+	{
+		log::message(log::level::error, "on_init Failed to create original game texture resource!");
+	}
+	
 
 	// Create resolve texture and copy pipeline (do this before creating effect resources, to ensure correct back buffer format is set up)
 	if (back_buffer_desc.texture.samples > 1
@@ -715,7 +719,6 @@ void reshade::runtime::on_reset()
 	log::message(log::level::info, "Destroyed runtime environment on runtime %p ('%s').", this, _config_path.u8string().c_str());
 }
 
-static bool saveBackRes = false;
 void reshade::runtime::on_present(api::command_queue *present_queue)
 {
 	assert(present_queue != nullptr);
@@ -754,21 +757,25 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 
 	uint32_t back_buffer_index = (_back_buffer_resolved != 0 ? 2 : 0) + currenrBufferIndex * 2;
 
-	reshade::log::message(reshade::log::level::info, "Current Back Buffer Index: %u", currenrBufferIndex);
+	/*reshade::log::message(reshade::log::level::info, "Current Back Buffer Index: %u", currenrBufferIndex);
 	reshade::log::message(reshade::log::level::info, "Back Buffer Index: %u", back_buffer_index);
-	reshade::log::message(reshade::log::level::info, "_back_buffer_resolved: %u", _back_buffer_resolved);
+	reshade::log::message(reshade::log::level::info, "_back_buffer_resolved: %u", _back_buffer_resolved);*/
 
 	//需要多创建一份 原始资源
 	const api::resource back_buffer_resource = _device->get_resource_from_view(_back_buffer_targets[back_buffer_index]);
-	//const api::resource original_game_texture = {};!saveBackRes
-	if (true)
-	{
-		//保留原始
-		cmd_list->barrier(back_buffer_resource, api::resource_usage::present, api::resource_usage::copy_source);
-		cmd_list->copy_texture_region(back_buffer_resource, 0, nullptr, original_game_texture, 0, nullptr);
-		cmd_list->barrier(back_buffer_resource, api::resource_usage::copy_source, api::resource_usage::render_target);
 
-		saveBackRes = true;
+	if (original_game_texture.handle)
+	{
+		//保留原始 
+		cmd_list->barrier(back_buffer_resource, api::resource_usage::present, api::resource_usage::copy_source);
+		cmd_list->barrier(original_game_texture, api::resource_usage::copy_source, api::resource_usage::copy_dest);
+		cmd_list->copy_texture_region(back_buffer_resource, 0, nullptr, original_game_texture, 0, nullptr);
+		cmd_list->barrier(original_game_texture, api::resource_usage::copy_dest, api::resource_usage::copy_source);
+		cmd_list->barrier(back_buffer_resource, api::resource_usage::copy_source, api::resource_usage::present);
+	}
+	else
+	{
+		log::message(log::level::error, "on_init original_game_texture is unvalid!");
 	}
 	
 	// Resolve MSAA back buffer if MSAA is active or copy when format conversion is required
@@ -812,9 +819,11 @@ void reshade::runtime::on_present(api::command_queue *present_queue)
 	}
 #endif 
 
-	cmd_list->barrier(original_game_texture, api::resource_usage::copy_source, api::resource_usage::copy_dest);
+	
+	cmd_list->barrier(back_buffer_resource, api::resource_usage::present, api::resource_usage::copy_dest);
 	cmd_list->copy_texture_region(original_game_texture, 0, nullptr, back_buffer_resource, 0, nullptr);
 	cmd_list->barrier(back_buffer_resource, api::resource_usage::copy_dest, api::resource_usage::present);
+	//cmd_list->barrier(original_game_texture, api::resource_usage::copy_source, api::resource_usage::copy_dest);
 
 	if (_should_save_screenshot)
 		save_screenshot(_screenshot_save_before ? "After" : std::string_view());
@@ -4278,17 +4287,6 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 	cmd_list->begin_debug_event("ReShade effects");
 #endif
 
-	api::resource _original_color_tex {};
-	const api::resource resources[2] = { back_buffer_resource, _original_color_tex };
-	const api::resource_usage state_old[2] = { api::resource_usage::render_target, api::resource_usage::copy_dest };
-	const api::resource_usage state_new[2] = { api::resource_usage::copy_source, api::resource_usage::copy_dest };
-
-	// 先确保 Back Buffer 进入可拷贝状态
-	//cmd_list->barrier(2, resources, state_old, state_new);
-	//cmd_list->copy_texture_region(back_buffer_resource, 0, nullptr, _original_color_tex, 0, nullptr);
-	//cmd_list->barrier(2, resources, state_new, state_old);
-
-
 	// Render all enabled techniques
 	for (size_t technique_index : _technique_sorting)
 	{
@@ -4322,33 +4320,12 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 	cmd_list->end_debug_event();
 #endif
 
-	/*const api::resource_usage state_restore[2] = { api::resource_usage::shader_resource, api::resource_usage::render_target };
-	cmd_list->barrier(2, resources, state_old, state_new);
-	cmd_list->copy_texture_region(_original_color_tex, 0, nullptr, back_buffer_resource, 0, nullptr);
-	cmd_list->barrier(2, resources, state_new, state_restore);*/
-
-
 #if RESHADE_ADDON
 	invoke_addon_event<addon_event::reshade_finish_effects>(this, cmd_list, rtv, rtv_srgb);
 
-	//Sleep(1000);
-	//disable_technique(tech);
-	
-	
 	if (!_is_in_present_call)
 		apply_state(cmd_list, _app_state);
 
-
-	/*for (size_t technique_index : _technique_sorting)
-	{
-		technique &tech = _techniques[technique_index];
-
-		if (tech.name == "SuperDepth3D")
-		{
-			disable_technique(tech);
-			break;
-		}
-	}*/
 #endif
 }
 void reshade::runtime::render_technique(technique &tech, api::command_list *cmd_list, api::resource back_buffer_resource, api::resource_view back_buffer_rtv, api::resource_view back_buffer_rtv_srgb, size_t permutation_index)
