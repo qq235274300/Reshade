@@ -4293,6 +4293,13 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 		technique &tech = _techniques[technique_index];
 		const effect &effect = _effects[tech.effect_index];
 
+		if (tech.name == "SuperDepth3D" && tech.enabled == false && firstRenderEffect)
+		{
+			//tech.enabled = true;
+			enable_technique(tech);
+			firstRenderEffect = false;
+		}
+
 		//longjie
 		if (!tech.enabled || (_should_save_screenshot && !tech.enabled_in_screenshot) || (!_effects_enabled && !effect.addon))
 			continue;
@@ -4306,6 +4313,8 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 		//longjie
 		//tech.enabled = false;
 		render_technique(tech, cmd_list, back_buffer_resource, rtv, rtv_srgb, permutation_index);
+
+		
 		
 		if (tech.time_left > 0)
 		{
@@ -4313,8 +4322,7 @@ void reshade::runtime::render_effects(api::command_list *cmd_list, api::resource
 			if (tech.time_left <= 0)
 				disable_technique(tech);
 		}
-
-		//enable_technique(tech);
+		
 	}
 
 #ifndef NDEBUG

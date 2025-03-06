@@ -4323,7 +4323,7 @@ void reshade::runtime::draw_technique_editor()
 				// Gray out disabled techniques
 				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(tech.enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled));
 
-				std::string label(get_localized_annotation(tech, "ui_label", _current_language));
+				std::string label(get_localized_annotation(tech, "ui_label", _current_language)); // en-US  _curren t_language
 				if (label.empty())
 					label = tech.name;
 				label += " [" + effect.source_file.filename().u8string() + ']';

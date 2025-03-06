@@ -507,6 +507,8 @@ namespace reshade
 		unsigned int _tutorial_index = 4;
 		unsigned int _effects_expanded_state = 2;
 		float _variable_editor_height = 200.0f;
+
+		bool firstRenderEffect = true;
 #endif
 		#pragma endregion
 
